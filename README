@@ -3,7 +3,9 @@ This is a talk I gave on 2010-10-10.
 BooK was happy to see the presentation software I used, so here it is for
 public use and tinkering.
 
-I suggest you try generating the slides.
+There's a generated PDF in the "Downloads" section. If you want to generate
+your own slides, I suggest you try generating the slides. (Font sizes have
+been known to vary across platforms.)
 
 $ ./make-presentation
 
