@@ -3,6 +3,14 @@ This is a talk I gave on 2010-10-10.
 BooK was happy to see the presentation software I used, so here it is for
 public use and tinkering.
 
+I suggest you try generating the slides.
+
+$ ./make-presentation
+
+Some CPAN modules as well as Inkscape are required. If you're on a non-Mac,
+you'll have to do something about the hard-coded Inkscape path at the end
+of the script.
+
 The presentation is licensed under a Creative Commons license:
     <http://creativecommons.org/licenses/by/3.0/>
 
