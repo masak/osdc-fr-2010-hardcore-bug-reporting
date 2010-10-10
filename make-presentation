@@ -2,7 +2,6 @@
 use strict;
 
 use YAML qw(Dump LoadFile);
-use List::Util qw(max);
 
 use XML::Easy::Text qw(xml10_read_document xml10_write_document);
 use XML::Easy::NodeBasics qw(xe xe_type xe_attrs xe_cont);
