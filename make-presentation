@@ -1,0 +1,104 @@
+#!/usr/bin/perl -w
+use strict;
+
+use YAML qw(Dump LoadFile);
+use List::Util qw(max);
+
+use XML::Easy::Text qw(xml10_read_document xml10_write_document);
+use XML::Easy::NodeBasics qw(xe xe_type xe_attrs xe_cont);
+use File::Slurp;
+
+my $TRANSITION_STEPS = 10;
+my $PI = atan2(1, 1) * 4;
+
+my $gs_dir = 'generated-slides';
+system(qw<rm -rf>, $gs_dir);
+system('mkdir',    $gs_dir);
+
+my $slide_number = 0;
+
+my $infile = 'canvas.svg';
+my $root = xml10_read_document(read_file($infile));
+#die Dump(xe(xe_type($root), xe_attrs($root)));
+my @root_content = @{xe_cont($root)->twine};
+my @instructions = grep { $a = xe_attrs($_); exists $a->{"inkscape:label"} && $a->{"inkscape:label"} eq "instructions" } grep { ref $_ } @root_content;
+my @windows = map {
+    my %e = %{xe_attrs($_)};
+    {
+        x => $e{"x"},
+        y => $e{"y"},
+        width => $e{"width"},
+        height => $e{"height"},
+        class => $e{"class"} // "",
+    }
+} grep { ref $_ } @{xe_cont($instructions[0])->twine};
+
+sub has_class {
+    my ($class_attr, $class_sought) = @_;
+
+    grep { $_ eq $class_sought } split /\s+/, $class_attr;
+}
+
+my @ww;
+my $last_window;
+for my $window (@windows) {
+    if ($last_window && has_class($window->{"class"}, "flow")) {
+        for my $step (1 .. $TRANSITION_STEPS-1) {
+            my $amount = $step / $TRANSITION_STEPS;
+            $amount = .5 * sin($amount * $PI - $PI/2) + .5;
+            $amount = .5 * sin($amount * $PI - $PI/2) + .5;
+            my $x
+                = $window->{"x"} * $amount + $last_window->{"x"} * (1-$amount);
+            my $y
+                = $window->{"y"} * $amount + $last_window->{"y"} * (1-$amount);
+            my $width = $window->{"width"} * $amount
+                        + $last_window->{"width"} * (1-$amount);
+            my $height = $window->{"height"} * $amount
+                         + $last_window->{"height"} * (1-$amount);
+            push @ww, { x => $x, y => $y, width => $width, height => $height };
+        }
+    }
+    push @ww, $window;
+    $last_window = $window;
+}
+@windows = @ww;
+
+for my $window (@windows) {
+    my ($x, $y, $width, $height) = map { $window->{$_} } qw<x y width height>;
+    my ($tx, $ty, $xscale, $yscale) = (-$x, -$y, 800/$width, 600/$height);
+
+    my @c;
+    for my $child (@{xe_cont($root)->twine}) {
+        next unless ref $child;
+        my $child_attrs = xe_attrs($child);
+        if (exists $child_attrs->{"inkscape:label"}
+            && $child_attrs->{"inkscape:label"} eq "content") {
+            my $new_attrs = {
+                %{$child_attrs},
+                transform => "scale($xscale,$yscale) translate($tx,$ty)",
+            };
+            push @c, xe(xe_type($child), $new_attrs, xe_cont($child));
+        }
+        elsif (!exists $child_attrs->{"inkscape:label"}
+                || $child_attrs->{"inkscape:label"} ne "instructions") {
+            push @c, $child;
+        }
+    }
+    my @cc;
+    for (@c) { push @cc, "\n    ", $_ }
+    push @cc, "\n";
+    my $slide = xe(xe_type($root), xe_attrs($root), @cc);
+    open my $SLIDE, '>', sprintf("$gs_dir/slide%03d.svg",
+                                 ++$slide_number)
+        or die $!;
+    print {$SLIDE} xml10_write_document($slide, "UTF-8");
+}
+
+my $inkscape_executable
+    = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape';
+
+system
+    "$inkscape_executable "
+    . "--without-gui --file=$gs_dir/slide$_.svg "
+    . "--export-pdf=$gs_dir/slide$_.pdf 2> /dev/null"
+        for map { sprintf '%03d', $_ } 1..$slide_number;

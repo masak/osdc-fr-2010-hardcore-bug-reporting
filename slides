@@ -1,0 +1,38 @@
+---
+- Hard-core bug reporting
+- ① Include 3 pieces of information
+- sequence of steps
+- what you observed
+- what you expect
+- "② Don't be sentimental"
+- unsatisfiable
+- issue tracking is a tool
+- hone it
+- use it effectively
+- ③ Realize bug reports are love
+- Damn users!
+- ④ Get an evalbot
+- An entity impersonating your project
+- Applicable if your project is a programming language implementation
+- (or any filter, really)
+- Get one!
+- Useful for a lot of things
+- Discussing features
+- Teaching newcomers
+- ⑤ Omit needless words
+- what the implementor wants
+- THE THREE STEPS
+- using them, you can fix a bug even on a *bad* day!
+- if the bug is fixed and all the tests pass => better
+- what the submitter wants
+- one word
+- '"fixed"'
+- ⑥ Lie for the greater good
+- cut text
+- edit, correct typos
+- ⑦ -Ofun
+- simple fact
+- "you'll never get to 1000"
+- "if you don't think it's fun"
+- have the appropriate amound of fun!
+
